@@ -9,6 +9,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "contentful-management": "^5.0.0"
+    "contentful-management": "^5.0.0",
+    "yargs": "^11.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^9.6.5",
+    "@types/yargs": "^11.0.0"
   }
 }
