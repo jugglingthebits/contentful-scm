@@ -5,14 +5,15 @@ import { createClient as createManagementClient } from 'contentful-management';
 import { Config, writeConfig } from './config';
 
 export async function clone(spaceId: string, parentPath: string, accessToken: string): Promise<void> {
-    const targetPath = path.join(parentPath, spaceId);
-
     try {
+        const repositoryPath = path.join(parentPath, spaceId);
+        fs.mkdirSync(repositoryPath);
+
         const config: Config = {
             spaceId,
             accessToken
         };
-        await writeConfig(config, targetPath);
+        await writeConfig(config, repositoryPath);
     } catch (e) {
         console.log(e);
     }
