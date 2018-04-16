@@ -3,13 +3,16 @@
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "bin": {
+    "contentful-scm": "./bin/contentful-scm.js"
   },
+  "scripts": {},
   "author": "",
   "license": "ISC",
   "dependencies": {
     "contentful-management": "^5.0.0",
+    "ts-node": "^5.0.1",
+    "typescript": "^2.8.1",
     "yargs": "^11.0.0"
   },
   "devDependencies": {
