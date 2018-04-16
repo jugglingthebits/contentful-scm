@@ -20,9 +20,9 @@ export async function clone(spaceId: string, parentPath: string, accessToken: st
 
     const managementClient = getContentfulManagementClient(accessToken);
     const managementSpace = await managementClient.getSpace(spaceId);
-    const masterEnvironement = await managementSpace.getEnvironment('master');
+    const masterEnvironment = await managementSpace.getEnvironment('master');
     // TODO: Get more than 100 entries
-    const entries = await masterEnvironement.getEntries();
+    const entries = await masterEnvironment.getEntries();
 
     for (const entry of entries.items) {
         const entryFilePath = path.join(repositoryPath, `${entry.sys.id}.json`);
