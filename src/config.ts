@@ -6,9 +6,9 @@ export interface Config {
     accessToken: string;
 }
 
-export async function writeConfig(config: Config, repositoryPath: string) {
+export async function writeConfig(config: Config, repositoryBasePath: string) {
     return new Promise((resolve, reject) => {
-        const configFilePath = path.join(repositoryPath, "contentful.json");
+        const configFilePath = path.join(repositoryBasePath, "contentful.json");
         fs.writeFileSync(configFilePath, JSON.stringify(config));
         resolve();
     });

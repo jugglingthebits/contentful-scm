@@ -5,15 +5,17 @@ import { createClient as createManagementClient } from 'contentful-management';
 import { Config, writeConfig } from './config';
 
 export async function clone(spaceId: string, parentPath: string, accessToken: string): Promise<void> {
-    const repositoryPath = path.join(parentPath, spaceId);
+    const basePath = path.join(parentPath, spaceId);
+    const hiddenDataPath = path.join(basePath, '.contentful-scm');
     try {
-        fs.mkdirSync(repositoryPath);
+        fs.mkdirSync(basePath);
+        fs.mkdirSync(hiddenDataPath);
 
         const config: Config = {
             spaceId,
             accessToken
         };
-        await writeConfig(config, repositoryPath);
+        await writeConfig(config, hiddenDataPath);
     } catch (e) {
         console.log(e);
     }
@@ -25,8 +27,14 @@ export async function clone(spaceId: string, parentPath: string, accessToken: st
     const entries = await masterEnvironment.getEntries();
 
     for (const entry of entries.items) {
-        const entryFilePath = path.join(repositoryPath, `${entry.sys.id}.json`);
-        fs.writeFileSync(entryFilePath, JSON.stringify(entry, null, 2));
+        const entryFilePath = path.join(hiddenDataPath, `${entry.sys.id}.json`);
+        fs.writeFileSync(entryFilePath, JSON.stringify(entry));
+    }
+
+    for (const entry of entries.items) {
+        const workingCopyEntryPath = path.join(basePath, `${entry.sys.id}.json`);
+        const workingCopyEntry = entry.fields;
+        fs.writeFileSync(workingCopyEntryPath, JSON.stringify(workingCopyEntry, null, 2));
     }
 }
 
