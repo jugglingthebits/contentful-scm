@@ -5,8 +5,8 @@ import { createClient as createManagementClient } from 'contentful-management';
 import { Config, writeConfig } from './config';
 
 export async function clone(spaceId: string, parentPath: string, accessToken: string): Promise<void> {
+    const repositoryPath = path.join(parentPath, spaceId);
     try {
-        const repositoryPath = path.join(parentPath, spaceId);
         fs.mkdirSync(repositoryPath);
 
         const config: Config = {
@@ -24,8 +24,8 @@ export async function clone(spaceId: string, parentPath: string, accessToken: st
     // TODO: Get more than 100 entries
     const entries = await managementSpace.getEntries();
     for (const entry of entries.items) {
-        const entryFilePath = path.join();
-        fs.writeFileSync(entryFilePath, entry);
+        const entryFilePath = path.join(repositoryPath, `${entry.sys.id}.json`);
+        fs.writeFileSync(entryFilePath, JSON.stringify(entry, null, 2));
     }
 }
 
