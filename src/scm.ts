@@ -10,6 +10,11 @@ interface ContentfulContentTypes {
 
 interface ContentfulContentType {
     sys: Sys;
+    fields: ContentfulContentTypeField[];
+}
+
+interface ContentfulContentTypeField {
+    id: string;
 }
 
 interface ContentfulEntries {
@@ -22,14 +27,15 @@ interface ContentfulEntry {
 
 interface Sys {
     id: string;
+    contentType?: ContentfulEntry;
 }
 
-
 class Entry {
-    static fromContentfulEntry(contentfulEntry: any, contentTypes: ContentfulContentTypes) {
-        const contentType = contentTypes.items.find(ct => ct.sys.id === contentfulEntry.contentType.sys.id);
+    static fromContentfulEntry(contentfulEntry: ContentfulEntry, contentTypes: ContentfulContentTypes) {
+        const contentType = contentTypes.items.find(ct => ct.sys.id === (<ContentfulEntry>contentfulEntry.sys.contentType).sys.id);
         if (!contentType)
-            throw new Error(`Unknown content type ${contentfulEntry.contentType.sys.id}`);
+            throw new Error(`Unknown content type ${(<ContentfulEntry>contentfulEntry.sys.contentType).sys.id}`);
+
         const entry = new Entry(contentfulEntry.sys.id, contentType);
         return entry;
     }
