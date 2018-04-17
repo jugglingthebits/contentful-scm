@@ -4,6 +4,15 @@ import * as fs from 'fs';
 import { createClient as createManagementClient } from 'contentful-management';
 import { Config, writeConfig } from './config';
 
+class Entry {
+    static fromContentfulEntry(contentfulEntry: any) {
+        const entry = new Entry(contentfulEntry.sys.id, contentfulEntry.contentType.sys.id);
+        return entry;
+    }
+
+    constructor(public id: string, contentType: string) {}
+}
+
 export async function clone(spaceId: string, parentPath: string, accessToken: string): Promise<void> {
     const workingCopyPath = path.join(parentPath, spaceId);
     fs.mkdirSync(workingCopyPath);
@@ -22,12 +31,14 @@ export async function clone(spaceId: string, parentPath: string, accessToken: st
     const masterEnvironment = await managementSpace.getEnvironment('master');
 
     // TODO: Get more than 100 entries
-    const contentTypes = await masterEnvironment.getContentTypes();
+    const contentfulContentTypes = await masterEnvironment.getContentTypes();
     // TODO: Get more than 100 entries
-    const entries = await masterEnvironment.getEntries();
+    const contentfulEntries = await masterEnvironment.getEntries();
 
-    writeHiddenCopy(contentTypes, entries, hiddenDataPath);
-    writeWorkingCopy(contentTypes, entries, workingCopyPath);
+    const entries = contentfulEntries.items.map(ce => Entry.fromContentfulEntry(ce));
+
+    writeHiddenCopy(contentfulContentTypes, contentfulEntries, hiddenDataPath);
+    writeWorkingCopy(entries, workingCopyPath);
 }
 
 function getContentfulManagementClient(accessToken: string) {
@@ -54,10 +65,9 @@ function writeHiddenCopy(contentTypes: any, entries: any, hiddenDataPath) {
     }
 }
 
-function writeWorkingCopy(contentTypes, entries, workingCopyPath) {
-    for (const entry of entries.items) {
-        const entryPath = path.join(workingCopyPath, `${entry.sys.id}.json`);
-        const workingCopyEntry = entry.fields;
-        fs.writeFileSync(entryPath, JSON.stringify(workingCopyEntry, null, 2));
+function writeWorkingCopy(entries: Entry[], workingCopyPath) {
+    for (const entry of entries) {
+        const entryPath = path.join(workingCopyPath, `${entry.id}.json`);
+        fs.writeFileSync(entryPath, JSON.stringify(entry, null, 2));
     }
 }
