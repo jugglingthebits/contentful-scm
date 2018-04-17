@@ -4,25 +4,37 @@ import * as fs from 'fs';
 import { createClient as createManagementClient } from 'contentful-management';
 import { Config, writeConfig } from './config';
 
-class ContentType {
-    static fromContentfulContentType(contentfulConentType: any) {
-        const contentType = new ContentType(contentfulConentType.sys.id);
-        return contentType;
-    }
-
-    constructor(public id: string) {}
+interface ContentfulContentTypes {
+    items: ContentfulContentType[];
 }
 
+interface ContentfulContentType {
+    sys: Sys;
+}
+
+interface ContentfulEntries {
+    items: ContentfulEntry[];
+}
+
+interface ContentfulEntry {
+    sys: Sys;
+}
+
+interface Sys {
+    id: string;
+}
+
+
 class Entry {
-    static fromContentfulEntry(contentfulEntry: any, contentTypes: ContentType[]) {
-        const contentType = contentTypes.find(ct => ct.id === contentfulEntry.contentType.sys.id);
+    static fromContentfulEntry(contentfulEntry: any, contentTypes: ContentfulContentTypes) {
+        const contentType = contentTypes.items.find(ct => ct.sys.id === contentfulEntry.contentType.sys.id);
         if (!contentType)
             throw new Error(`Unknown content type ${contentfulEntry.contentType.sys.id}`);
         const entry = new Entry(contentfulEntry.sys.id, contentType);
         return entry;
     }
 
-    constructor(public id: string, public contentType: ContentType) {}
+    constructor(public id: string, public contentType: ContentfulContentType) { }
 }
 
 export async function clone(spaceId: string, parentPath: string, accessToken: string): Promise<void> {
@@ -43,14 +55,13 @@ export async function clone(spaceId: string, parentPath: string, accessToken: st
     const masterEnvironment = await managementSpace.getEnvironment('master');
 
     // TODO: Get more than 100 entries
-    const contentfulContentTypes = await masterEnvironment.getContentTypes();
+    const contentfulContentTypes: ContentfulContentTypes = await masterEnvironment.getContentTypes();
     // TODO: Get more than 100 entries
-    const contentfulEntries = await masterEnvironment.getEntries();
-
-    const contentTypes = contentfulContentTypes.items.map((ct: any) => ContentType.fromContentfulContentType(ct));
-    const entries = contentfulEntries.items.map((ce: any) => Entry.fromContentfulEntry(ce, contentTypes));
+    const contentfulEntries: ContentfulEntries = await masterEnvironment.getEntries();
 
     writeHiddenCopy(contentfulContentTypes, contentfulEntries, hiddenDataPath);
+
+    const entries = contentfulEntries.items.map((ce: any) => Entry.fromContentfulEntry(ce, contentfulContentTypes));
     writeWorkingCopy(entries, workingCopyPath);
 }
 
@@ -60,13 +71,13 @@ function getContentfulManagementClient(accessToken: string) {
     });
 }
 
-function writeHiddenCopy(contentTypes: any, entries: any, hiddenDataPath: string) {
+function writeHiddenCopy(contentfulContentTypes: ContentfulContentTypes, entries: ContentfulEntries, hiddenDataPath: string) {
     const contentTypesPath = path.join(hiddenDataPath, 'content-types');
     fs.mkdirSync(contentTypesPath);
 
-    for (const contentType of contentTypes.items) {
-        const contentTypePath = path.join(contentTypesPath, `${contentType.sys.id}.json`);
-        fs.writeFileSync(contentTypePath, JSON.stringify(contentType));
+    for (const contentfulContentType of contentfulContentTypes.items) {
+        const contentTypePath = path.join(contentTypesPath, `${contentfulContentType.sys.id}.json`);
+        fs.writeFileSync(contentTypePath, JSON.stringify(contentfulContentType));
     }
 
     const entriesPath = path.join(hiddenDataPath, 'entries');
