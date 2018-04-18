@@ -9,7 +9,7 @@ interface ContentfulContentTypes {
 }
 
 interface ContentfulContentType {
-    sys: Sys;
+    sys: ContentfulSys;
     fields: ContentfulContentTypeField[];
 }
 
@@ -22,12 +22,22 @@ interface ContentfulEntries {
 }
 
 interface ContentfulEntry {
-    sys: Sys;
+    sys: ContentfulSys;
+    fields: ContentfulEntryField[];
 }
 
-interface Sys {
+interface ContentfulSys {
     id: string;
     contentType?: ContentfulEntry;
+}
+
+interface ContentfulEntryField {
+    id: string;
+    values: ContentfulEntryFieldValue;
+}
+
+interface ContentfulEntryFieldValue {
+    [language: string]: string;
 }
 
 class Entry {
@@ -36,11 +46,17 @@ class Entry {
         if (!contentType)
             throw new Error(`Unknown content type ${(<ContentfulEntry>contentfulEntry.sys.contentType).sys.id}`);
 
-        const entry = new Entry(contentfulEntry.sys.id, contentType);
+        for (const contentTypeField of contentType.fields) {
+            const entryField = contentfulEntry.fields.find(f => f.id === contentTypeField.id);
+            if (!entryField)
+                throw new Error(`Field ${contentTypeField.id} not found in entry ${contentfulEntry.sys.id}`);
+        }
+
+        const entry = new Entry(contentfulEntry.sys.id, contentType, []);
         return entry;
     }
 
-    constructor(public id: string, public contentType: ContentfulContentType) { }
+    constructor(public id: string, public contentType: ContentfulContentType, fields: ContentfulEntryField[]) { }
 }
 
 export async function clone(spaceId: string, parentPath: string, accessToken: string): Promise<void> {
