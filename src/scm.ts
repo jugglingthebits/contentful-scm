@@ -53,22 +53,21 @@ class Entry {
         if (!contentType)
             throw new Error(`Unknown content type ${(<ContentfulEntry> contentfulEntry.sys.contentType).sys.id}`);
 
-        const entryFields: ContentfulEntryField[] = [];
-        for (const contentTypeField of contentType.fields) {
-            const entryField = contentfulEntry.fields.find(f => f.id === contentTypeField.id);
+        const entryFields: ContentfulEntryField[] = contentType.fields.map(ctf => {
+            const entryField = contentfulEntry.fields.find(f => f.id === ctf.id);
             if (!entryField)
-                throw new Error(`Field ${contentTypeField.id} not found in entry ${contentfulEntry.sys.id}`);
+                throw new Error(`Field ${ctf.id} not found in entry ${contentfulEntry.sys.id}`);
 
-            switch (contentTypeField.type) {
+            switch (ctf.type) {
                 case ContentfulContentTypeFieldType.Symbol:
-                    entryFields.push(entryField);
-                    break;
+                    return entryField;
+                case ContentfulContentTypeFieldType.Array:
                 default:
-                    throw new Error(`Unknown field type ${contentTypeField.type}`);
+                    throw new Error(`Unknown field type ${ctf.type}`);
             }
-        }
+        });
 
-        const entry = new Entry(contentfulEntry.sys.id, contentType, []);
+        const entry = new Entry(contentfulEntry.sys.id, contentType, entryFields);
         return entry;
     }
 

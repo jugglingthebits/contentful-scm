@@ -5,6 +5,7 @@
         "curly": [true, "as-needed"],
         "max-line-length": [true, 160],
         "no-angle-bracket-type-assertion": false,
-        "arrow-parens": false
+        "arrow-parens": false,
+        "switch-default": true
     }
 }
